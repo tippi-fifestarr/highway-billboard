@@ -1,26 +1,92 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark-mode {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+}
+
+/* Highway theme custom styles */
+@layer components {
+  /* Road elements */
+  .highway-road {
+    @apply bg-gray-800;
+  }
+  
+  .highway-lane-divider {
+    @apply bg-yellow-400;
+  }
+  
+  /* Sign elements */
+  .highway-sign {
+    @apply font-bold rounded-lg shadow-md;
+  }
+  
+  .highway-sign-blue {
+    @apply bg-blue-600 text-white;
+  }
+  
+  .highway-sign-green {
+    @apply bg-green-700 text-white;
+  }
+  
+  .highway-sign-red {
+    @apply bg-red-600 text-white;
+  }
+  
+  .highway-sign-orange {
+    @apply bg-orange-500 text-white;
+  }
+  
+  .highway-sign-brown {
+    @apply bg-amber-800 text-white;
+  }
+  
+  /* Billboard elements */
+  .billboard {
+    @apply bg-white border-4 rounded-lg shadow-lg p-6;
+  }
+  
+  .billboard-post {
+    @apply relative bg-gray-50 p-4 rounded-lg shadow-md;
+  }
+  
+  /* Gas station elements */
+  .gas-gauge {
+    @apply relative w-32 h-16 flex flex-col items-center;
+  }
+  
+  .gas-gauge-fill {
+    @apply h-full transition-all duration-500 ease-in-out;
+  }
+  
+  /* Animation classes */
+  .driving-animation {
+    @apply transition-transform duration-500 ease-in-out;
+  }
+}
+
+/* Custom font for highway signs */
+@font-face {
+  font-family: 'Highway Gothic';
+  src: local('Highway Gothic'), local('HighwayGothic'),
+       url('https://fonts.cdnfonts.com/s/19795/HWYGOTH.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.highway-font {
+  font-family: 'Highway Gothic', 'Arial Narrow', Arial, sans-serif;
 }

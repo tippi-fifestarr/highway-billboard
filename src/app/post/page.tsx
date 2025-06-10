@@ -1,24 +1,34 @@
 'use client';
 
 import React from 'react';
-import FeaturedBillboard from '@/components/billboard/FeaturedBillboard';
+import PostMessageForm from '@/components/billboard/PostMessageForm';
 import WalletConnector from '@/components/wallet/WalletConnector';
-import TestHighwayStyling from '@/components/TestHighwayStyling';
 import { COLORS } from '@/utils/constants';
 
-export default function Home() {
+export default function PostPage() {
   return (
     <div className="space-y-8">
       <h1 className="text-4xl font-bold text-center mb-8" style={{ color: COLORS.highwayLineYellow }}>
-        Welcome to the Highway Billboard
+        Post Your Billboard Message
       </h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main content - Featured Billboard */}
+        {/* Main content - Post Message Form */}
         <div className="lg:col-span-2">
-          <FeaturedBillboard />
+          <PostMessageForm />
           
           <div className="mt-8 flex justify-center">
+            <a 
+              href="/"
+              className="px-6 py-3 rounded-full font-bold text-lg shadow-lg transition-transform transform hover:scale-105 mr-4"
+              style={{ 
+                backgroundColor: COLORS.highwaySignGreen,
+                color: COLORS.highwaySignWhite
+              }}
+            >
+              🏠 BACK TO MAIN
+            </a>
+            
             <a 
               href="/drive-by"
               className="px-6 py-3 rounded-full font-bold text-lg shadow-lg transition-transform transform hover:scale-105"
@@ -27,39 +37,35 @@ export default function Home() {
                 color: COLORS.highwaySignWhite
               }}
             >
-              🚗 KEEP DRIVING
+              🚗 VIEW HIGHWAY
             </a>
           </div>
         </div>
         
-        {/* Sidebar - Wallet Connector */}
+        {/* Sidebar - Wallet Connector and Info */}
         <div>
           <WalletConnector />
           
           <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4" style={{ color: COLORS.highwaySignGreen }}>
-              Highway Guide
+            <h2 className="text-xl font-bold mb-4" style={{ color: COLORS.highwaySignOrange }}>
+              Gas Station Guide
             </h2>
             <ul className="space-y-2">
               <li className="flex items-start">
                 <span className="mr-2">🔑</span>
-                <span>Connect your wallet to start your journey</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">⛽</span>
-                <span>Check your APT balance in the fuel gauge</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">👁️</span>
-                <span>View the featured billboard on the main page</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">🚗</span>
-                <span>Drive by to see all messages on the highway</span>
+                <span>Connect your wallet to post messages</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2">📝</span>
-                <span>Post your own message at the gas station</span>
+                <span>Write your message (max 100 characters)</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">⛽</span>
+                <span>You'll pay gas fees for the transaction</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">💡</span>
+                <span>In Phase 2, you'll be able to pay more APT to feature your message longer!</span>
               </li>
             </ul>
           </div>
@@ -76,12 +82,6 @@ export default function Home() {
             backgroundRepeat: 'repeat-x'
           }}>
         </div>
-      </div>
-      
-      {/* Test component to verify highway styling */}
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Highway Styling Test</h2>
-        <TestHighwayStyling />
       </div>
     </div>
   );
