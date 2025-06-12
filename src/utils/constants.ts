@@ -29,9 +29,15 @@ export const COLORS = {
 
 // Network configuration
 export const NETWORK = {
-  name: "devnet",
-  fullnodeUrl: "https://fullnode.devnet.aptoslabs.com/v1",
+  name: "testnet",
+  fullnodeUrl: "https://fullnode.testnet.aptoslabs.com/v1",
 };
 
 // Maximum APT amount for "full tank" in the gas gauge
 export const MAX_APT_DISPLAY = 10;
+
+// API key for Aptos Build Gas Station
+// Use environment variable to avoid exposing the key in the code
+// Log the environment variable to debug
+console.log('Environment variable:', process.env.NEXT_PUBLIC_APTOS_API_KEY);
+export const APTOS_API_KEY = process.env.NEXT_PUBLIC_APTOS_API_KEY || "";

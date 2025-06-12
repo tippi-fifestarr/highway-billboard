@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛣️ Highway Billboard dApp
 
-## Getting Started
+A decentralized billboard application built on the Aptos blockchain where users can post messages to a virtual highway billboard. This project demonstrates how to build a modern web3 application with sponsored transactions using the Aptos Build Gas Station.
 
-First, run the development server:
+![Highway Billboard Screenshot](image.png)
+
+## ✨ Features
+
+- **Post Messages**: Users can post messages to the highway billboard
+- **Gas Station Integration**: Transactions are sponsored by the Aptos Build Gas Station, so users don't need to pay gas fees (currently not sure if this is working)
+- **Wallet Connection**: Seamless integration with Petra wallet
+- **Responsive Design**: Highway-themed UI that works on all devices
+- **Testnet Support**: Built for the Aptos Testnet
+
+## 🛠️ Technology Stack
+
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Blockchain**: Aptos Blockchain (Testnet)
+- **Wallet**: Aptos Wallet Adapter with Petra wallet support
+- **Smart Contract**: Move module deployed on Aptos Testnet
+- **Transaction Sponsorship**: Aptos Build Gas Station
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm/yarn
+- [Petra Wallet](https://petra.app/) browser extension installed
+- An Aptos Build Gas Station API key
+
+### Environment Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/tippi-fifestarr/highway-billboard.git
+cd highway-billboard
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Copy the `.env.example` file to `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+4. Edit `.env.local` and add your Aptos Build Gas Station API key:
+
+```
+NEXT_PUBLIC_APTOS_API_KEY=your_actual_api_key_here
+```
+
+You can obtain an API key from the [Aptos Build dashboard](https://aptoslabs.com/build).
+
+### Running the Development Server
+
+Run the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔍 How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Gas Station Integration
 
-## Learn More
+The application uses the Aptos Build Gas Station to sponsor transactions, allowing users to post messages without paying gas fees. This is implemented by:
 
-To learn more about Next.js, take a look at the following resources:
+1. Configuring the Aptos client with your API key
+2. Using regular transactions that are automatically sponsored by the Gas Station
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Smart Contract Interaction
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The dApp interacts with a Move module deployed on the Aptos Testnet. The contract handles:
 
-## Deploy on Vercel
+- Storing messages on the blockchain
+- Managing message history
+- Ensuring proper access control
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### User Flow
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. User connects their Petra wallet to the dApp
+2. User writes a message in the form
+3. User submits the transaction
+4. The Gas Station sponsors the transaction
+5. The message appears on the highway billboard
+
+## 🧪 Testing
+
+Make sure your wallet is connected to the Aptos Testnet, as the Gas Station only works on Testnet.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📞 Contact
+
+If you have any questions or feedback, please open an issue in this repository.

@@ -3,6 +3,7 @@ import { useWallet as useAptosWallet } from '@aptos-labs/wallet-adapter-react';
 import { getAccountAPTBalance } from '@/services/contract';
 import { WalletStatus } from '@/types';
 import { MAX_APT_DISPLAY } from '@/utils/constants';
+// No need to import specific types for now
 
 /**
  * Custom hook to manage wallet connection and balance
@@ -29,9 +30,9 @@ export function useWallet() {
       setStatus(WalletStatus.CONNECTING);
       
       // Check if the wallet is connected to the correct network
-      if (network && network.name && !network.name.toLowerCase().includes('devnet')) {
-        console.warn('Wallet is not connected to Devnet. Please switch to Devnet in your Petra wallet.');
-        alert('Please make sure your Petra wallet is connected to Devnet, not Testnet or Mainnet.');
+      if (network && network.name && !network.name.toLowerCase().includes('testnet')) {
+        console.warn('Wallet is not connected to Testnet. Please switch to Testnet in your Petra wallet.');
+        alert('Please make sure your Petra wallet is connected to Testnet, not Devnet or Mainnet.');
       }
       
       await connect("Petra");
@@ -85,6 +86,7 @@ export function useWallet() {
     fetchBalance();
   }, [connected, account]);
   
+
   return {
     connectWallet,
     disconnectWallet,

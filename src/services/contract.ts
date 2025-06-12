@@ -1,21 +1,41 @@
-import { 
-  Aptos, 
-  AptosConfig, 
-  Network, 
+import {
+  Aptos,
+  AptosConfig,
+  Network,
   AccountAddress,
-  InputViewFunctionData
+  InputViewFunctionData,
+  ClientConfig
 } from "@aptos-labs/ts-sdk";
-import { CONTRACT_ADDRESS, MODULE_NAME, NETWORK } from "@/utils/constants";
+import { CONTRACT_ADDRESS, MODULE_NAME, NETWORK, APTOS_API_KEY } from "@/utils/constants";
 import { Message } from "@/types";
 
-// Initialize Aptos client with the correct network configuration
-const network = NETWORK.name === 'devnet' ? Network.DEVNET : Network.TESTNET;
+// Initialize Aptos client with the correct network configuration and API key
+const network = Network.TESTNET; // Explicitly use TESTNET
+console.log('Using network:', network);
+
+// Check if API key is loaded
+if (!APTOS_API_KEY) {
+  console.error('API key is not set! Make sure .env.local is properly configured.');
+}
+
+// Add client config with API key
+const clientConfig: ClientConfig = {
+  API_KEY: APTOS_API_KEY
+};
+
+console.log('Using API key:', APTOS_API_KEY);
+console.log('Client config:', JSON.stringify(clientConfig));
+
 const aptosConfig = new AptosConfig({
   network,
   fullnode: NETWORK.fullnodeUrl,
+  clientConfig // Add the client config with API key
 });
 
+console.log('Aptos config created with client config');
+
 const aptos = new Aptos(aptosConfig);
+console.log('Aptos client initialized');
 
 // Type for the message from the contract
 interface ContractMessageResponse {
@@ -120,27 +140,26 @@ export async function getMessageAtIndex(index: number): Promise<Message | null> 
  */
 export async function sendMessage(sender: string, content: string) {
   try {
-    // Verify that we're using the correct network
-    if (network !== Network.DEVNET) {
-      console.warn('Warning: Contract is deployed on Devnet, but current network is not Devnet');
-      throw new Error('Network mismatch: Please switch your wallet to Devnet to interact with this contract');
-    }
+    console.log('Creating transaction for sender:', sender);
+    console.log('Message content:', content);
     
-    const transaction = {
-      sender,
-      data: {
-        function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`,
-        typeArguments: [],
-        functionArguments: [CONTRACT_ADDRESS, content],
-      },
+    // Let's try a completely different approach
+    // Use the Aptos client to build the transaction payload
+    const payload = {
+      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`,
+      type_arguments: [],
+      arguments: [CONTRACT_ADDRESS, content]
     };
     
-    return transaction;
+    console.log('Transaction payload:', payload);
+    
+    return payload;
   } catch (error) {
     console.error('Error creating send message transaction:', error);
     throw error;
   }
 }
+
 
 /**
  * Get account APT balance

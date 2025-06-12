@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '@/hooks/useWallet';
-import { sendMessage } from '@/services/contract';
 import { WalletStatus } from '@/types';
-import { COLORS } from '@/utils/constants';
+import { COLORS, CONTRACT_ADDRESS, MODULE_NAME } from '@/utils/constants';
 
 /**
  * PostMessageForm component allows users to post new messages to the billboard
@@ -13,11 +12,12 @@ export default function PostMessageForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  const { 
-    status, 
-    account, 
+  const {
+    status,
+    account,
     connectWallet,
-    signAndSubmitTransaction 
+    signAndSubmitTransaction,
+    network
   } = useWallet();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,11 +38,25 @@ export default function PostMessageForm() {
       setError(null);
       setSuccess(false);
       
-      // Create the transaction payload
-      const transaction = await sendMessage(account.address, message);
+      // Convert account.address to string if needed
+      const addressStr = typeof account.address === 'string'
+        ? account.address
+        : account.address.toString();
       
-      // Sign and submit the transaction
-      const result = await signAndSubmitTransaction(transaction);
+      // Use the format from the example code
+      console.log('Submitting transaction with function:', `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`);
+      console.log('Arguments:', [CONTRACT_ADDRESS, message]);
+      console.log('Sender address:', addressStr);
+      
+      // Use the wallet adapter to sign and submit the transaction
+      const result = await signAndSubmitTransaction({
+        sender: addressStr,
+        data: {
+          function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`,
+          functionArguments: [CONTRACT_ADDRESS, message],
+          typeArguments: []
+        }
+      });
       
       console.log('Transaction submitted:', result);
       
@@ -117,6 +131,29 @@ export default function PostMessageForm() {
           </div>
         )}
         
+        {/* Network warning */}
+        {status === WalletStatus.CONNECTED && network && network.name && !network.name.toLowerCase().includes('testnet') && (
+          <div className="mb-4 p-4 bg-red-100 rounded-lg">
+            <p className="text-red-800 font-bold">
+              ⚠️ Warning: You are not connected to Testnet!
+            </p>
+            <p className="text-red-700 mt-1">
+              The gas station only works on Testnet. Please switch your wallet to Testnet to use free transactions.
+            </p>
+          </div>
+        )}
+        
+        {/* Gas station info */}
+        <div className="mb-4 p-4 bg-blue-100 rounded-lg">
+          <p className="text-blue-800 font-bold">
+            ⛽ Gas Station Enabled
+          </p>
+          <p className="text-blue-600 mt-1">
+            Transactions on Testnet are sponsored by the Aptos Build Gas Station. You won&apos;t need to pay gas fees for posting messages.
+          </p>
+        </div>
+        
+        
         {error && (
           <div className="mb-4 p-4 bg-red-100 rounded-lg">
             <p className="text-red-800">{error}</p>
@@ -151,7 +188,7 @@ export default function PostMessageForm() {
       </form>
       
       <div className="mt-6 text-center text-sm text-gray-500">
-        <p>💡 In Phase 2, you'll be able to pay more APT to feature your message longer!</p>
+        <p>💡 In Phase 2, you&apos;ll be able to pay more APT to feature your message longer!</p>
       </div>
     </div>
   );
