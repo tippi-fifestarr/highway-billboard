@@ -24,19 +24,27 @@ export function useWallet() {
   const [status, setStatus] = useState<WalletStatus>(WalletStatus.DISCONNECTED);
   const [balance, setBalance] = useState<number>(0);
   const [fuelPercentage, setFuelPercentage] = useState<number>(0);
+  const [walletName, setWalletName] = useState<string | null>(null);
   
-  // Connect to Petra wallet
-  const connectWallet = async () => {
+  // Connect to wallet (Petra or Social Login)
+  const connectWallet = async (walletType: 'petra' | 'social' = 'petra') => {
     try {
       setStatus(WalletStatus.CONNECTING);
       
-      // Check if the wallet is connected to the correct network
-      if (network && network.name && !network.name.toLowerCase().includes('testnet')) {
-        console.warn('Wallet is not connected to Testnet. Please switch to Testnet in your Petra wallet.');
-        alert('Please make sure your Petra wallet is connected to Testnet, not Devnet or Mainnet.');
+      if (walletType === 'petra') {
+        // Check if the wallet is connected to the correct network
+        if (network && network.name && !network.name.toLowerCase().includes('testnet')) {
+          console.warn('Wallet is not connected to Testnet. Please switch to Testnet in your Petra wallet.');
+          alert('Please make sure your Petra wallet is connected to Testnet, not Devnet or Mainnet.');
+        }
+        
+        await connect("Petra");
+        setWalletName('petra');
+      } else if (walletType === 'social') {
+        // Connect with Google Social Login
+        await connect("Continue with Google");
+        setWalletName('social');
       }
-      
-      await connect("Petra");
     } catch (error) {
       console.error('Error connecting wallet:', error);
       setStatus(WalletStatus.ERROR);
@@ -50,6 +58,7 @@ export function useWallet() {
       setStatus(WalletStatus.DISCONNECTED);
       setBalance(0);
       setFuelPercentage(0);
+      setWalletName(null);
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
     }
@@ -97,6 +106,7 @@ export function useWallet() {
     account,
     connected,
     wallet,
+    walletName,
     network,
     signAndSubmitTransaction,
     signTransaction

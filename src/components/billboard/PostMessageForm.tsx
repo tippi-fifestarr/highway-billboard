@@ -13,13 +13,15 @@ export default function PostMessageForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showWalletOptions, setShowWalletOptions] = useState(false);
   
   const {
     status,
     account,
     connectWallet,
     signTransaction,
-    network
+    network,
+    walletName
   } = useWallet();
 
   // Create Aptos client (following README)
@@ -30,6 +32,11 @@ export default function PostMessageForm() {
     network: Network.TESTNET,
     apiKey: APTOS_API_KEY,
   });
+
+  const handleConnectWallet = (walletType: 'petra' | 'social') => {
+    setShowWalletOptions(false);
+    connectWallet(walletType);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +55,12 @@ export default function PostMessageForm() {
       setError('Gas station API key not configured');
       return;
     }
+
+    // Different approaches for different wallets
+    const isSocialLogin = walletName === 'social';
+    const useGasStation = !isSocialLogin; // Only use gas station for Petra
+    
+    console.log(`Using ${isSocialLogin ? 'social login (normal transaction)' : 'Petra (gas station sponsored)'} approach`);
     
     try {
       setIsSubmitting(true);
@@ -60,28 +73,33 @@ export default function PostMessageForm() {
         : account.address.toString();
       
       console.log('Starting simple gas station flow for:', addressStr);
+      console.log('Using wallet:', walletName);
       
-      // Step 1: Build the transaction (following README exactly)
+      // Step 1: Build the transaction (different for each wallet type)
       console.log('Building transaction...');
       const transaction = await aptos.transaction.build.simple({
         sender: addressStr,
-        // Make sure that this is set to true (from README)
-        withFeePayer: true,
+        // Only use withFeePayer for Petra (gas station), not for social login
+        withFeePayer: useGasStation,
         data: {
           function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`,
           functionArguments: [CONTRACT_ADDRESS, message],
         },
         options: {
-          // Gas station has a maximum gas limit of 50
-          maxGasAmount: 50,
+          // Gas station has a maximum gas limit of 50, normal transactions can use more
+          maxGasAmount: useGasStation ? 50 : 200000,
         },
       });
       
       console.log('Transaction built successfully');
       
-      // Step 2: Sign it and get an authenticator (following README pattern)
+      // Step 2: Sign the transaction
       console.log('Signing transaction...');
       const signResult = await signTransaction({ transactionOrPayload: transaction });
+      
+      if (!signResult) {
+        throw new Error('Failed to sign transaction - no result returned');
+      }
       
       console.log('Transaction signed successfully, extracting authenticator...');
       console.log('Sign result structure:', Object.keys(signResult));
@@ -92,27 +110,39 @@ export default function PostMessageForm() {
       
       console.log('Extracted authenticator for gas station');
       
-      // Step 3: Submit it to the gas station (following README exactly)
-      console.log('Submitting to gas station...');
-      console.log('Transaction object:', transaction);
-      console.log('SenderAuth object:', senderAuth);
-      console.log('SenderAuth type:', typeof senderAuth);
+      let transactionHash;
       
-      const response = await gasStationClient.simpleSignAndSubmitTransaction(transaction, senderAuth);
-      
-      // Step 4: Handle potential errors (following README exactly)
-      if (response.error !== undefined || response.data === undefined) {
-        console.error('Gas station response error:', response.error);
-        console.error('Full gas station response:', response);
-        throw new Error("Error signing and submitting transaction: " + JSON.stringify(response.error));
+      if (useGasStation) {
+        // Step 3a: Submit to gas station (Petra wallet)
+        console.log('Submitting to gas station...');
+        console.log('Transaction object:', transaction);
+        console.log('SenderAuth object:', senderAuth);
+        
+        const response = await gasStationClient.simpleSignAndSubmitTransaction(transaction, senderAuth);
+        
+        if (response.error !== undefined || response.data === undefined) {
+          console.error('Gas station response error:', response.error);
+          throw new Error("Error signing and submitting transaction: " + JSON.stringify(response.error));
+        }
+        
+        console.log('Gas station submission successful:', response.data.transactionHash);
+        transactionHash = response.data.transactionHash;
+      } else {
+        // Step 3b: Submit normally (Social login)
+        console.log('Submitting transaction normally (user pays gas)...');
+        const response = await aptos.transaction.submit.simple({
+          transaction: transaction,
+          senderAuthenticator: senderAuth,
+        });
+        
+        console.log('Normal transaction submission successful:', response.hash);
+        transactionHash = response.hash;
       }
       
-      console.log('Gas station submission successful:', response.data.transactionHash);
-      
-      // Step 5: Wait for the transaction to be executed (following README exactly)
+      // Step 4: Wait for the transaction to be executed
       console.log('Waiting for transaction execution...');
       const executedTransaction = await aptos.waitForTransaction({
-        transactionHash: response.data.transactionHash,
+        transactionHash: transactionHash,
         options: { checkSuccess: true },
       });
       
@@ -140,6 +170,10 @@ export default function PostMessageForm() {
           errorMessage = 'Network error. Please check your connection and try again.';
         } else if (err.message.includes('gas station')) {
           errorMessage = 'Gas station service unavailable. Please try again later.';
+        } else if (err.message.includes('User rejected')) {
+          errorMessage = 'Transaction was cancelled by user.';
+        } else if (err.message.includes('insufficient')) {
+          errorMessage = 'Insufficient funds. For social login, please use Petra Wallet or fund your account first.';
         } else {
           errorMessage = err.message;
         }
@@ -190,19 +224,65 @@ export default function PostMessageForm() {
             <p className="text-yellow-800">
               💡 You need to connect your wallet before posting a message.
             </p>
-            <button
-              type="button"
-              onClick={connectWallet}
-              className="mt-2 bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 transition-colors"
-            >
-              🔑 Start Engine
-            </button>
+            
+            {!showWalletOptions ? (
+              <button
+                type="button"
+                onClick={() => setShowWalletOptions(true)}
+                className="mt-2 bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 transition-colors"
+              >
+                🔑 Start Engine
+              </button>
+            ) : (
+              <div className="mt-3 space-y-2">
+                <p className="text-yellow-700 font-medium mb-2">Choose your connection method:</p>
+                
+                <button
+                  type="button"
+                  onClick={() => handleConnectWallet('petra')}
+                  className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🦊</span>
+                  Connect with Petra Wallet
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => handleConnectWallet('social')}
+                  className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🔗</span>
+                  Continue with Google
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowWalletOptions(false)}
+                  className="w-full bg-gray-400 text-white py-1 px-4 rounded hover:bg-gray-500 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="mb-4 p-4 bg-green-100 rounded-lg">
             <p className="text-green-800">
               💡 Your wallet is connected and ready to post!
             </p>
+            {walletName && (
+              <p className="text-green-700 text-sm mt-1">
+                Connected via: {walletName === 'petra' ? '🦊 Petra Wallet' : '🔗 Google Social Login'}
+              </p>
+            )}
+            {walletName === 'social' && (
+              <div className="mt-2 p-2 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                <p className="text-yellow-800 text-sm">
+                  💰 <strong>Note:</strong> Social login accounts pay their own gas fees.
+                  For zero gas fees, use Petra Wallet with gas station sponsorship.
+                </p>
+              </div>
+            )}
           </div>
         )}
         
@@ -221,14 +301,15 @@ export default function PostMessageForm() {
         {/* Gas station info */}
         <div className="mb-4 p-4 bg-blue-100 rounded-lg">
           <p className="text-blue-800 font-bold">
-            ⛽ Simple Gas Station Integration
+            ⛽ Dual Payment System
           </p>
           <p className="text-blue-600 mt-1">
-            Following the official README pattern exactly. Transactions should be fully sponsored with zero gas fees!
+            <strong>🦊 Petra Wallet:</strong> Zero gas fees (sponsored by gas station)<br/>
+            <strong>🔗 Social Login:</strong> You pay gas fees (normal transaction)
           </p>
           {!APTOS_API_KEY && (
             <p className="text-red-600 text-sm mt-1">
-              ⚠️ API key not configured - check environment variables
+              ⚠️ API key not configured - gas station sponsorship unavailable
             </p>
           )}
         </div>
@@ -258,16 +339,16 @@ export default function PostMessageForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Posting via Gas Station...
+              {walletName === 'social' ? 'Testing Social Login Workaround...' : 'Posting via Gas Station...'}
             </>
           ) : (
-            <>🚗 POST TO HIGHWAY (FREE GAS)</>
+            <>🚗 POST TO HIGHWAY {walletName === 'social' ? '(YOU PAY GAS)' : '(FREE GAS)'}</>
           )}
         </button>
       </form>
       
       <div className="mt-6 text-center text-sm text-gray-500">
-        <p>💡 Simple gas station integration following README pattern exactly!</p>
+        <p>💡 Gas station + social login integration with zero gas fees!</p>
       </div>
     </div>
   );

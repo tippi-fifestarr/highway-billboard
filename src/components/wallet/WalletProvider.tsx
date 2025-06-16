@@ -1,7 +1,7 @@
 'use client';
 
 import React, { ReactNode } from 'react';
-import { AptosWalletAdapterProvider, WalletName } from '@aptos-labs/wallet-adapter-react';
+import { AptosWalletAdapterProvider } from '@aptos-labs/wallet-adapter-react';
 import { Network } from '@aptos-labs/ts-sdk';
 import { NETWORK } from '@/utils/constants';
 
@@ -19,7 +19,7 @@ export default function WalletProvider({ children }: WalletProviderProps) {
 
   return (
     <AptosWalletAdapterProvider
-      optInWallets={["Petra"]}
+      optInWallets={["Petra", "Continue with Google"]}
       autoConnect={false}
       dappConfig={{ network }}
       onError={(error) => {
