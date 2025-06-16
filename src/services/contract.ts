@@ -3,39 +3,18 @@ import {
   AptosConfig,
   Network,
   AccountAddress,
-  InputViewFunctionData,
-  ClientConfig
+  InputViewFunctionData
 } from "@aptos-labs/ts-sdk";
-import { CONTRACT_ADDRESS, MODULE_NAME, NETWORK, APTOS_API_KEY } from "@/utils/constants";
+import { CONTRACT_ADDRESS, MODULE_NAME, NETWORK } from "@/utils/constants";
 import { Message } from "@/types";
 
-// Initialize Aptos client with the correct network configuration and API key
-const network = Network.TESTNET; // Explicitly use TESTNET
-console.log('Using network:', network);
-
-// Check if API key is loaded
-if (!APTOS_API_KEY) {
-  console.error('API key is not set! Make sure .env.local is properly configured.');
-}
-
-// Add client config with API key
-const clientConfig: ClientConfig = {
-  API_KEY: APTOS_API_KEY
-};
-
-console.log('Using API key:', APTOS_API_KEY);
-console.log('Client config:', JSON.stringify(clientConfig));
-
+// Initialize Aptos client for read-only operations
 const aptosConfig = new AptosConfig({
-  network,
+  network: Network.TESTNET,
   fullnode: NETWORK.fullnodeUrl,
-  clientConfig // Add the client config with API key
 });
 
-console.log('Aptos config created with client config');
-
 const aptos = new Aptos(aptosConfig);
-console.log('Aptos client initialized');
 
 // Type for the message from the contract
 interface ContractMessageResponse {
@@ -133,29 +112,27 @@ export async function getMessageAtIndex(index: number): Promise<Message | null> 
 }
 
 /**
- * Send a message to the billboard
+ * Build a gas station transaction for sending a message
  * @param sender Sender's account address
  * @param content Message content
- * @returns Transaction payload
+ * @returns Transaction object ready for gas station submission
  */
-export async function sendMessage(sender: string, content: string) {
+export async function buildSendMessageTransaction(sender: string, content: string) {
   try {
-    console.log('Creating transaction for sender:', sender);
-    console.log('Message content:', content);
+    // Build transaction with withFeePayer: true for gas station
+    const transaction = await aptos.transaction.build.simple({
+      sender: sender,
+      withFeePayer: true, // Critical for gas station sponsorship
+      data: {
+        function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`,
+        functionArguments: [CONTRACT_ADDRESS, content],
+        typeArguments: []
+      },
+    });
     
-    // Let's try a completely different approach
-    // Use the Aptos client to build the transaction payload
-    const payload = {
-      function: `${CONTRACT_ADDRESS}::${MODULE_NAME}::send_message`,
-      type_arguments: [],
-      arguments: [CONTRACT_ADDRESS, content]
-    };
-    
-    console.log('Transaction payload:', payload);
-    
-    return payload;
+    return transaction;
   } catch (error) {
-    console.error('Error creating send message transaction:', error);
+    console.error('Error building send message transaction:', error);
     throw error;
   }
 }

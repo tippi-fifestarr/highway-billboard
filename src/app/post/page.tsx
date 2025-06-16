@@ -60,12 +60,8 @@ export default function PostPage() {
                 <span>Write your message (max 100 characters)</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-2">⛽</span>
-                <span>You'll pay gas fees for the transaction</span>
-              </li>
-              <li className="flex items-start">
                 <span className="mr-2">💡</span>
-                <span>In Phase 2, you'll be able to pay more APT to feature your message longer!</span>
+                <span>In Phase 2, pay more APT to feature your message longer!</span>
               </li>
             </ul>
           </div>

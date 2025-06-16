@@ -10,14 +10,15 @@ import { MAX_APT_DISPLAY } from '@/utils/constants';
  * @returns Object containing wallet state and functions
  */
 export function useWallet() {
-  const { 
+  const {
     connect,
     disconnect,
     account,
     connected,
     wallet,
     network,
-    signAndSubmitTransaction
+    signAndSubmitTransaction,
+    signTransaction
   } = useAptosWallet();
   
   const [status, setStatus] = useState<WalletStatus>(WalletStatus.DISCONNECTED);
@@ -97,6 +98,7 @@ export function useWallet() {
     connected,
     wallet,
     network,
-    signAndSubmitTransaction
+    signAndSubmitTransaction,
+    signTransaction
   };
 }

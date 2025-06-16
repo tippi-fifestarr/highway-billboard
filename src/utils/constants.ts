@@ -36,8 +36,5 @@ export const NETWORK = {
 // Maximum APT amount for "full tank" in the gas gauge
 export const MAX_APT_DISPLAY = 10;
 
-// API key for Aptos Build Gas Station
-// Use environment variable to avoid exposing the key in the code
-// Log the environment variable to debug
-console.log('Environment variable:', process.env.NEXT_PUBLIC_APTOS_API_KEY);
+// API key for Aptos Build Gas Station (client-side accessible for simple implementation)
 export const APTOS_API_KEY = process.env.NEXT_PUBLIC_APTOS_API_KEY || "";
